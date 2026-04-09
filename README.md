@@ -1,4 +1,4 @@
-# ACC Race Engineer
+# Assetto Corsa Competizione Race Engineer
 
 A desktop race engineer tool for **Assetto Corsa Competizione**, built with Python and PyQt6.
 Provides fuel strategy calculations and tire pressure recommendations to help you prepare for races.
