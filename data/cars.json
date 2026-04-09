@@ -1,0 +1,234 @@
+{
+  "gt3": [
+    {
+      "name": "Aston Martin V8 Vantage GT3",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Audi R8 LMS GT3 Evo II",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.9, "RR": 23.9 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.7, "RR": 24.7 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.5, "RR": 25.5 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Bentley Continental GT3 (2018)",
+      "class": "GT3",
+      "fuel_tank_liters": 132,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 23.9, "FR": 23.9, "RL": 23.7, "RR": 23.7 },
+        "dry_mild": { "FL": 24.7, "FR": 24.7, "RL": 24.5, "RR": 24.5 },
+        "dry_cold": { "FL": 25.5, "FR": 25.5, "RL": 25.3, "RR": 25.3 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "BMW M4 GT3",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "BMW M6 GT3",
+      "class": "GT3",
+      "fuel_tank_liters": 125,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Ferrari 296 GT3",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.7, "RR": 23.7 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.5, "RR": 24.5 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.3, "RR": 25.3 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Ferrari 488 GT3 Evo",
+      "class": "GT3",
+      "fuel_tank_liters": 110,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Honda NSX GT3 Evo",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Lamborghini Huracán GT3 Evo 2",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "McLaren 720S GT3 Evo",
+      "class": "GT3",
+      "fuel_tank_liters": 125,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Mercedes-AMG GT3 (2020)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.9, "RR": 23.9 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.7, "RR": 24.7 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.5, "RR": 25.5 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Nissan GT-R Nismo GT3 (2018)",
+      "class": "GT3",
+      "fuel_tank_liters": 130,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Porsche 911 GT3 R (992)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.9, "RR": 23.9 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.7, "RR": 24.7 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.5, "RR": 25.5 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    }
+  ],
+  "gt4": [
+    {
+      "name": "Alpine A110 GT4",
+      "class": "GT4",
+      "fuel_tank_liters": 60,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.7, "RR": 23.7 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.5, "RR": 24.5 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.3, "RR": 25.3 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Aston Martin V8 Vantage GT4",
+      "class": "GT4",
+      "fuel_tank_liters": 72,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "BMW M4 GT4",
+      "class": "GT4",
+      "fuel_tank_liters": 109,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Chevrolet Camaro GT4.R",
+      "class": "GT4",
+      "fuel_tank_liters": 80,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
+        "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
+        "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Mercedes-AMG GT4",
+      "class": "GT4",
+      "fuel_tank_liters": 65,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.9, "RR": 23.9 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.7, "RR": 24.7 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.5, "RR": 25.5 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    },
+    {
+      "name": "Porsche 718 Cayman GT4 MR",
+      "class": "GT4",
+      "fuel_tank_liters": 64,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "cold_pressures": {
+        "dry_hot": { "FL": 24.1, "FR": 24.1, "RL": 23.9, "RR": 23.9 },
+        "dry_mild": { "FL": 24.9, "FR": 24.9, "RL": 24.7, "RR": 24.7 },
+        "dry_cold": { "FL": 25.7, "FR": 25.7, "RL": 25.5, "RR": 25.5 },
+        "wet": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+      }
+    }
+  ]
+}
