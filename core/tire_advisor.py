@@ -3,59 +3,57 @@ ACC Race Engineer — Tire Advisor Module
 Calculates recommended cold starting tire pressures based on car, weather, and temperature.
 
 Key concept:
-  - Cold pressures = what you set in the pits (lower, tires are cold)
-  - Hot pressures = what tires reach on track (higher, tires heated up)
-  - Optimal HOT pressure window: 26.6 — 27.0 PSI
-  - The goal: recommend cold pressures that will reach the optimal hot window
+  - Cold pressures = what you set in the pits (tires are cold)
+  - Hot pressures  = what tires reach on track (tires heated up)
+  - Optimal HOT pressure window: 26.6 - 27.0 PSI
+  - Rule: 0.1 PSI gain per every 2°C of track temperature above/below 25°C reference
+  - Goal: recommend cold pressures that will reach the optimal hot window
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class TireRecommendation:
     """Result of a tire pressure calculation."""
     car_name: str
-    weather_condition: str  # dry_hot, dry_mild, dry_cold, wet
-    weather_label: str      # Human-readable: "Dry - Hot", etc.
+    weather_condition: str  # dry / wet
+    weather_label: str      # Human-readable: "Dry", "Wet"
     ambient_temp: float
     track_temp: float
-    optimal_hot_min: float  # Optimal hot PSI min (26.6)
-    optimal_hot_max: float  # Optimal hot PSI max (27.0)
+    pressure_gain: float    # Estimated PSI gain cold to hot
+    optimal_hot_min: float
+    optimal_hot_max: float
     cold_pressures: dict[str, float]   # FL, FR, RL, RR — what to set in pits
     estimated_hot: dict[str, float]    # FL, FR, RL, RR — estimated on-track PSI
     temp_status: str        # "too_hot", "optimal", "too_cold"
-    temp_delta: float       # How far track temp is from ideal range
+    temp_delta: float       # How far avg estimated hot is from the window
     notes: list[str]
 
 
 def classify_weather(ambient_temp: float, is_wet: bool) -> tuple[str, str]:
-    """
-    Classify weather condition based on ambient temperature and rain.
-
-    Returns:
-        (condition_key, human_label)
-    """
     if is_wet:
         return "wet", "Wet"
-    if ambient_temp > 30:
-        return "dry_hot", "Dry - Hot"
-    if ambient_temp >= 15:
-        return "dry_mild", "Dry - Mild"
-    return "dry_cold", "Dry - Cold"
+    return "dry", "Dry"
 
 
-def _estimate_pressure_gain(ambient_temp: float, track_temp: float) -> float:
+def _estimate_pressure_gain(track_temp: float) -> float:
     """
-    Estimate how much PSI the tires will gain from cold to hot.
-    Hotter conditions = more pressure gain.
-    Typical gain is ~2.5 PSI in mild conditions, more in hot, less in cold.
+    Estimate PSI gain from cold to hot based on track temperature.
+
+    Baseline: 25°C track -> 2.3 PSI gain (calibrated from real ACC data).
+    Rule: 0.1 PSI per every 2°C of track temp change from the 25°C reference.
+
+    Examples:
+        10°C  -> 1.55 PSI
+        25°C  -> 2.30 PSI
+        30°C  -> 2.55 PSI
+        40°C  -> 3.05 PSI
+        50°C  -> 3.55 PSI
+        60°C  -> 4.05 PSI
     """
-    avg_temp = (ambient_temp + track_temp) / 2.0
-    # Base gain at 20C is ~2.5 PSI, scales with temperature
-    base_gain = 2.5
-    gain = base_gain + (avg_temp - 20.0) * 0.05
-    return max(gain, 1.0)  # At minimum 1 PSI gain even in freezing conditions
+    gain = 2.3 + (track_temp - 25.0) * 0.05
+    return round(max(gain, 1.0), 2)
 
 
 def calculate_tire_recommendation(
@@ -63,64 +61,67 @@ def calculate_tire_recommendation(
     ambient_temp: float,
     track_temp: float,
     is_wet: bool,
-    cold_pressures: dict[str, float],
+    tire_split_psi: float,
+    wet_cold_pressures: dict[str, float],
     optimal_hot_psi: tuple[float, float],
 ) -> TireRecommendation:
     """
-    Calculate recommended cold starting tire pressures for given conditions.
+    Calculate recommended cold starting tire pressures.
 
-    Args:
-        car_name: Name of the car.
-        ambient_temp: Ambient air temperature in Celsius.
-        track_temp: Track surface temperature in Celsius.
-        is_wet: Whether the track is wet.
-        cold_pressures: Base cold pressures for the classified condition {FL, FR, RL, RR}.
-        optimal_hot_psi: (min, max) optimal hot tire pressure range.
+    For dry conditions cold pressures are derived dynamically:
+        base_cold = hot_target - gain(track_temp)
+        FL = FR = base_cold + tire_split_psi
+        RL = RR = base_cold
 
-    Returns:
-        TireRecommendation with cold pressures to set and estimated hot pressures.
+    For wet conditions the static wet_cold_pressures from car data are used.
     """
     condition, label = classify_weather(ambient_temp, is_wet)
     hot_min, hot_max = optimal_hot_psi
-    hot_target = (hot_min + hot_max) / 2.0  # 26.8 PSI target
+    hot_target = (hot_min + hot_max) / 2.0
     notes = []
 
-    # Estimate pressure gain from cold to hot
-    pressure_gain = _estimate_pressure_gain(ambient_temp, track_temp)
+    pressure_gain = _estimate_pressure_gain(track_temp)
 
-    # Estimate what the cold pressures will become when hot
-    estimated_hot = {}
-    for corner, cold_psi in cold_pressures.items():
-        estimated_hot[corner] = round(cold_psi + pressure_gain, 1)
+    if is_wet:
+        cold_pressures = dict(wet_cold_pressures)
+    else:
+        base_cold = round(hot_target - pressure_gain, 1)
+        cold_pressures = {
+            "FL": round(base_cold + tire_split_psi, 1),
+            "FR": round(base_cold + tire_split_psi, 1),
+            "RL": base_cold,
+            "RR": base_cold,
+        }
 
-    # Check if estimated hot pressures are in the optimal window
-    avg_estimated_hot = sum(estimated_hot.values()) / len(estimated_hot)
+    estimated_hot = {c: round(p + pressure_gain, 1) for c, p in cold_pressures.items()}
+    avg_hot = sum(estimated_hot.values()) / len(estimated_hot)
 
-    if avg_estimated_hot > hot_max:
+    if avg_hot > hot_max:
         temp_status = "too_hot"
-        temp_delta = round(avg_estimated_hot - hot_max, 1)
-    elif avg_estimated_hot < hot_min:
+        temp_delta = round(avg_hot - hot_max, 1)
+    elif avg_hot < hot_min:
         temp_status = "too_cold"
-        temp_delta = round(hot_min - avg_estimated_hot, 1)
+        temp_delta = round(hot_min - avg_hot, 1)
     else:
         temp_status = "optimal"
         temp_delta = 0.0
 
-    # Build advice notes
-    notes.append(f"Estimated pressure gain (cold to hot): +{pressure_gain:.1f} PSI")
-
-    if temp_status == "optimal":
-        notes.append(f"Estimated hot pressures are within the optimal window ({hot_min}-{hot_max} PSI).")
-        notes.append("These cold pressures should put you in the grip sweet spot.")
-    elif temp_status == "too_hot":
-        notes.append(f"Estimated hot pressures are {temp_delta:.1f} PSI above optimal.")
-        notes.append("Consider lowering cold pressures or monitoring tire wear.")
-    else:
-        notes.append(f"Estimated hot pressures are {temp_delta:.1f} PSI below optimal.")
-        notes.append("Tires may struggle to reach operating window — expect less grip early on.")
+    notes.append(f"Estimated pressure gain (cold to hot): +{pressure_gain:.2f} PSI")
+    notes.append(f"Rule: 0.1 PSI per 2°C track temp change from 25°C reference.")
 
     if is_wet:
-        notes.append("Wet conditions: cold pressures set higher to resist aquaplaning.")
+        notes.append("Wet: static cold pressures applied.")
+    else:
+        notes.append(
+            f"Cold pressures target {hot_target:.1f} PSI hot "
+            f"(centre of {hot_min}-{hot_max} window)."
+        )
+        if track_temp >= 40:
+            notes.append(
+                f"High track temp ({track_temp:.0f}°C): larger gain means lower cold start."
+            )
+
+    notes.append("Fine-tune each corner with the +/- buttons based on what you see in-game.")
 
     return TireRecommendation(
         car_name=car_name,
@@ -128,6 +129,7 @@ def calculate_tire_recommendation(
         weather_label=label,
         ambient_temp=ambient_temp,
         track_temp=track_temp,
+        pressure_gain=pressure_gain,
         optimal_hot_min=hot_min,
         optimal_hot_max=hot_max,
         cold_pressures=cold_pressures,

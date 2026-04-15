@@ -12,7 +12,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from core.car_data import CarDatabase
-from core.tire_advisor import calculate_tire_recommendation, classify_weather
+from core.tire_advisor import (
+    calculate_tire_recommendation, _estimate_pressure_gain,
+)
 from ui.fuel_tab import ResultCard
 
 
@@ -85,6 +87,31 @@ class TireAdvisorTab(QWidget):
 
         input_layout.addWidget(weather_group)
 
+        # Current HOT PSI Group
+        convert_group = QGroupBox("CURRENT HOT PSI  (optional)")
+        convert_grid = QGridLayout(convert_group)
+        convert_grid.setSpacing(10)
+
+        hot_hint = QLabel("Enter PSI values shown in-game while tires are hot")
+        hot_hint.setStyleSheet("color: #5A6275; font-size: 11px;")
+        hot_hint.setWordWrap(True)
+        convert_grid.addWidget(hot_hint, 0, 0, 1, 2)
+
+        self._current_psi_spins = {}
+        for i, corner in enumerate(["FL", "FR", "RL", "RR"]):
+            row, col = divmod(i, 2)
+            convert_grid.addWidget(QLabel(corner), row * 2 + 1, col)
+            spin = QDoubleSpinBox()
+            spin.setRange(20.0, 35.0)
+            spin.setValue(27.0)
+            spin.setDecimals(1)
+            spin.setSuffix(" PSI")
+            spin.setSingleStep(0.1)
+            convert_grid.addWidget(spin, row * 2 + 2, col)
+            self._current_psi_spins[corner] = spin
+
+        input_layout.addWidget(convert_group)
+
         # Reference Group
         ref_group = QGroupBox("REFERENCE")
         ref_layout = QVBoxLayout(ref_group)
@@ -141,8 +168,8 @@ class TireAdvisorTab(QWidget):
         cold_grid.setSpacing(16)
 
         self.cold_cards = {}
-        self._base_pressures = {}   # Store base recommended values
-        self._adjustments = {}      # Store user adjustments per corner
+        self._base_pressures = {}
+        self._adjustments = {}
         corners = [("FL", "FRONT LEFT", 0, 0), ("FR", "FRONT RIGHT", 0, 1),
                    ("RL", "REAR LEFT", 1, 0), ("RR", "REAR RIGHT", 1, 1)]
 
@@ -187,7 +214,6 @@ class TireAdvisorTab(QWidget):
         corner_label.setStyleSheet("color: #E0E4EC; font-size: 14px; font-weight: 700; letter-spacing: 1px;")
         corner_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Value row with -/+ buttons
         value_row = QHBoxLayout()
         value_row.setSpacing(8)
 
@@ -234,17 +260,14 @@ class TireAdvisorTab(QWidget):
         value_row.addWidget(value_label, stretch=1)
         value_row.addWidget(plus_btn)
 
-        # Delta label (shows adjustment from base)
         delta_label = QLabel("")
         delta_label.setObjectName("pressure_delta")
         delta_label.setStyleSheet("color: #5A6275; font-size: 11px; font-weight: 600;")
         delta_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-
         layout.addWidget(corner_label)
         layout.addLayout(value_row)
         layout.addWidget(delta_label)
-
 
         return frame
 
@@ -273,14 +296,13 @@ class TireAdvisorTab(QWidget):
             self._on_car_changed()
 
     def _on_car_changed(self):
-        # Reset adjustments when car changes
         for key in self._adjustments:
             self._adjustments[key] = 0.0
 
     def _adjust_pressure(self, corner: str, delta: float):
         """Adjust a corner's pressure by delta PSI."""
         if self._base_pressures[corner] == 0.0:
-            return  # No calculation done yet
+            return
 
         self._adjustments[corner] = round(self._adjustments[corner] + delta, 1)
         new_psi = round(self._base_pressures[corner] + self._adjustments[corner], 1)
@@ -309,44 +331,37 @@ class TireAdvisorTab(QWidget):
             return
 
         ambient_temp = self.ambient_temp_spin.value()
-        track_temp = self.track_temp_spin.value()
-        is_wet = self.condition_combo.currentText() == "Wet"
+        track_temp   = self.track_temp_spin.value()
+        is_wet       = self.condition_combo.currentText() == "Wet"
 
-        # Get car-specific data
-        optimal_hot = self.car_db.get_optimal_hot_psi(car_name)
-
-        # Classify weather to look up the right cold pressure set
-        condition, _ = classify_weather(ambient_temp, is_wet)
-        cold_pressures = self.car_db.get_cold_pressures(car_name, condition)
-
-        if not cold_pressures:
-            return
+        optimal_hot       = self.car_db.get_optimal_hot_psi(car_name)
+        tire_split        = self.car_db.get_tire_split(car_name)
+        wet_cold          = self.car_db.get_wet_cold_pressures(car_name)
 
         recommendation = calculate_tire_recommendation(
             car_name=car_name,
             ambient_temp=ambient_temp,
             track_temp=track_temp,
             is_wet=is_wet,
-            cold_pressures=cold_pressures,
+            tire_split_psi=tire_split,
+            wet_cold_pressures=wet_cold,
             optimal_hot_psi=optimal_hot,
         )
 
-        # Update condition cards
+        # Summary cards
         self.card_weather.set_value(recommendation.weather_label, accent=True)
+        gain = _estimate_pressure_gain(track_temp)
+        self.card_pressure_gain.set_value(f"+{gain:.2f}", accent=False)
+        status_display = {"optimal": "IN WINDOW", "too_hot": "OVER", "too_cold": "UNDER"}
+        self.card_hot_status.set_value(
+            status_display[recommendation.temp_status],
+            accent=recommendation.temp_status != "optimal",
+        )
 
-        from core.tire_advisor import _estimate_pressure_gain
-        gain = _estimate_pressure_gain(ambient_temp, track_temp)
-        self.card_pressure_gain.set_value(f"+{gain:.1f}", accent=False)
-
-        status_display = {
-            "optimal": "IN WINDOW",
-            "too_hot": "OVER",
-            "too_cold": "UNDER",
-        }
-        is_not_optimal = recommendation.temp_status != "optimal"
-        self.card_hot_status.set_value(status_display[recommendation.temp_status], accent=is_not_optimal)
-
-        # Update cold pressures (what to set in pits) and reset adjustments
+        # Update cold pressure cards
+        # "CURRENT HOT PSI" inputs are what the user sees in-game while tires are hot.
+        # We convert those to an estimated cold by subtracting the pressure gain,
+        # then show how much the recommended cold differs from the user's current cold.
         for corner, frame in self.cold_cards.items():
             if corner in recommendation.cold_pressures:
                 psi = recommendation.cold_pressures[corner]
@@ -359,9 +374,20 @@ class TireAdvisorTab(QWidget):
                     value_label.setText(f"{psi:.1f}")
                     value_label.setStyleSheet("color: #22C55E; font-size: 28px; font-weight: 700;")
                 if delta_label:
-                    delta_label.setText("")
+                    # User entered their current HOT psi; estimate their current cold
+                    current_hot  = self._current_psi_spins[corner].value()
+                    current_cold = round(current_hot - gain, 1)
+                    diff = round(psi - current_cold, 1)
+                    if diff == 0.0:
+                        delta_label.setText("no change vs current")
+                        delta_label.setStyleSheet("color: #5A6275; font-size: 14px; font-weight: 600;")
+                    elif diff > 0:
+                        delta_label.setText(f"+{diff:.1f} vs current cold")
+                        delta_label.setStyleSheet("color: #FF4A3D; font-size: 14px; font-weight: 600;")
+                    else:
+                        delta_label.setText(f"{diff:.1f} vs current cold")
+                        delta_label.setStyleSheet("color: #4A9FFF; font-size: 14px; font-weight: 600;")
 
-        # Update notes
         self._update_notes(recommendation.notes)
 
     def _update_notes(self, notes: list[str]):
@@ -369,11 +395,9 @@ class TireAdvisorTab(QWidget):
             item = self.notes_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-
         for note in notes:
-            note_label = QLabel(f"  {note}")
-            note_label.setStyleSheet("color: #B0B8C8; font-size: 13px; padding: 2px 0;")
-            note_label.setWordWrap(True)
-            self.notes_layout.addWidget(note_label)
-
+            lbl = QLabel(f"  {note}")
+            lbl.setStyleSheet("color: #B0B8C8; font-size: 13px; padding: 2px 0;")
+            lbl.setWordWrap(True)
+            self.notes_layout.addWidget(lbl)
         self.notes_layout.addStretch()

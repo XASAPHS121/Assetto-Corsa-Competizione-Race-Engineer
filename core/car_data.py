@@ -48,12 +48,19 @@ class CarDatabase:
             return car["fuel_tank_liters"]
         return 0.0
 
-    def get_cold_pressures(self, name: str, condition: str) -> Optional[dict]:
-        """Return recommended cold starting pressures for a car and condition."""
+    def get_tire_split(self, name: str) -> float:
+        """Return the front-over-rear cold PSI offset for this car (e.g. 0.2)."""
         car = self._cars.get(name)
         if car:
-            return car.get("cold_pressures", {}).get(condition)
-        return None
+            return car.get("tire_split_psi", 0.2)
+        return 0.2
+
+    def get_wet_cold_pressures(self, name: str) -> dict:
+        """Return static cold pressures used in wet conditions."""
+        car = self._cars.get(name)
+        if car:
+            return car.get("wet_cold_pressures", {"FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0})
+        return {"FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0}
 
     def get_optimal_hot_psi(self, name: str) -> tuple[float, float]:
         """Return (min, max) optimal hot tire pressure in PSI."""
