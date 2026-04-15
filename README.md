@@ -19,8 +19,9 @@ Provides fuel strategy calculations and tire pressure recommendations to help yo
 ### Tire Advisor
 - Recommends **cold starting pressures** (set in pits) per tire corner (FL, FR, RL, RR)
 - Targets the optimal hot pressure window of **26.6 - 27.0 PSI**
-- Adjusts for weather conditions: Dry Hot (>30C), Dry Mild (15-30C), Dry Cold (<15C), Wet
-- Shows estimated **pressure gain** from cold to hot
+- **Dynamic formula** — cold pressures computed directly from track temperature, not static lookup tables
+- Rule: **0.1 PSI per every 2°C** of track temperature change (works correctly at 40°C+)
+- Enter your **current hot PSI** from the in-game MFD to see per-corner adjustment deltas
 - Per-corner **+/- adjustment buttons** with delta tracking from base recommendation
 - Advisor notes with tips based on current conditions
 
@@ -133,16 +134,19 @@ acc-engineer/
 ### Tire Advisor
 1. Select your car
 2. Set track condition (Dry/Wet), ambient temperature, and track temperature
-3. Hit **Calculate Pressures** to get:
+3. Optionally enter your **current hot PSI** per corner (what you see in-game while on track)
+4. Hit **Calculate Pressures** to get:
    - Recommended cold pressures per corner
-   - Weather classification and estimated pressure gain
+   - Estimated pressure gain and delta vs your current setup
    - Hot pressure status (in window / over / under)
-4. Use **+/-** buttons to fine-tune each corner by 0.1 PSI increments
+5. Use **+/-** buttons to fine-tune each corner by 0.1 PSI based on what you see in-game
 
 ### Tire Pressure Physics
 Cold tires in the pits have lower pressure. After a few laps on track, heat builds up and pressure rises.
-The advisor calculates what cold pressure to set so that hot pressure lands in the **26.6 - 27.0 PSI** optimal window.
-Hotter conditions = lower cold pressure (tires gain more heat). Colder conditions = higher cold pressure.
+The advisor computes cold pressure dynamically using the rule: **0.1 PSI per every 2°C of track temperature**.
+At 25°C track the baseline gain is 2.3 PSI. At 40°C it becomes 3.05 PSI, at 50°C it's 3.55 PSI.
+The formula works at any temperature — no buckets, no static tables.
+The +/- buttons exist because track layout, fuel load, and driving style all affect real-world gain.
 
 ---
 
@@ -156,12 +160,8 @@ Edit `data/cars.json` to add new cars. Each entry follows this structure:
   "class": "GT3",
   "fuel_tank_liters": 120,
   "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
-  "cold_pressures": {
-    "dry_hot":  { "FL": 24.0, "FR": 24.0, "RL": 23.8, "RR": 23.8 },
-    "dry_mild": { "FL": 24.8, "FR": 24.8, "RL": 24.6, "RR": 24.6 },
-    "dry_cold": { "FL": 25.6, "FR": 25.6, "RL": 25.4, "RR": 25.4 },
-    "wet":      { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
-  }
+  "tire_split_psi": 0.2,
+  "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
 }
 ```
 
@@ -171,16 +171,10 @@ Edit `data/cars.json` to add new cars. Each entry follows this structure:
 | `class` | `GT3` or `GT4` |
 | `fuel_tank_liters` | Fuel tank capacity in liters |
 | `optimal_hot_psi` | Target hot pressure range on track |
-| `cold_pressures` | Starting pressures set in pits per weather condition |
-| `FL, FR, RL, RR` | Front-Left, Front-Right, Rear-Left, Rear-Right |
+| `tire_split_psi` | How much higher fronts run vs rears (typically 0.2 or 0.3) |
+| `wet_cold_pressures` | Static cold pressures used in wet conditions |
 
-**Weather conditions:**
-| Condition | Ambient Temp | Notes |
-|-----------|-------------|-------|
-| `dry_hot` | > 30 C | Lower cold PSI — tires gain more heat |
-| `dry_mild` | 15 - 30 C | Standard baseline |
-| `dry_cold` | < 15 C | Higher cold PSI — tires gain less heat |
-| `wet` | Any (rain) | Typically 27.0 PSI all around |
+Dry cold pressures are **not stored** — they are computed dynamically from track temperature at runtime.
 
 ---
 
