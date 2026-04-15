@@ -42,7 +42,11 @@ Chevrolet Camaro GT4.R, Mercedes-AMG GT4, Porsche 718 Cayman GT4 MR
 
 ---
 
-## Installation
+## Download
+
+Grab the latest **ACC Race Engineer.exe** from the [Releases](https://github.com/XASAPHS121/ACC-Race-Engineer/releases) page — no Python or installation required.
+
+## Manual Installation for development 
 
 ### Requirements
 - Python 3.11+
