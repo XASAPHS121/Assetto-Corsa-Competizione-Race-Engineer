@@ -173,20 +173,25 @@ class FuelCalculatorTab(QWidget):
         self.fuel_per_lap_spin.setSingleStep(0.1)
         fuel_grid.addWidget(self.fuel_per_lap_spin, 0, 1)
 
-        fuel_grid.addWidget(QLabel("Formation Laps"), 1, 0)
+        engine_map_hint = QLabel("Value depends on your engine map. Use Map 1 for aggressive pace, Map 2-3 to save fuel.")
+        engine_map_hint.setStyleSheet("color: #5A6275; font-size: 10px; font-style: italic;")
+        engine_map_hint.setWordWrap(True)
+        fuel_grid.addWidget(engine_map_hint, 1, 0, 1, 2)
+
+        fuel_grid.addWidget(QLabel("Formation Laps"), 2, 0)
         self.formation_laps_spin = QSpinBox()
         self.formation_laps_spin.setRange(0, 5)
         self.formation_laps_spin.setValue(1)
-        fuel_grid.addWidget(self.formation_laps_spin, 1, 1)
+        fuel_grid.addWidget(self.formation_laps_spin, 2, 1)
 
-        fuel_grid.addWidget(QLabel("Safety Margin"), 2, 0)
+        fuel_grid.addWidget(QLabel("Safety Margin"), 3, 0)
         self.safety_margin_spin = QDoubleSpinBox()
         self.safety_margin_spin.setRange(0.0, 5.0)
         self.safety_margin_spin.setValue(1.0)
         self.safety_margin_spin.setDecimals(1)
         self.safety_margin_spin.setSuffix(" laps")
         self.safety_margin_spin.setSingleStep(0.5)
-        fuel_grid.addWidget(self.safety_margin_spin, 2, 1)
+        fuel_grid.addWidget(self.safety_margin_spin, 3, 1)
 
         input_layout.addWidget(fuel_group)
 
@@ -246,6 +251,16 @@ class FuelCalculatorTab(QWidget):
         self.stint_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.stint_layout.addWidget(self.stint_info_label)
         results_layout.addWidget(self.stint_group)
+
+        # Advisor Notes
+        self.notes_group = QGroupBox("STRATEGY NOTES")
+        self.notes_layout = QVBoxLayout(self.notes_group)
+        self.notes_layout.setSpacing(4)
+        notes_placeholder = QLabel("Calculate a strategy to see advisor notes.")
+        notes_placeholder.setStyleSheet("color: #5A6275; font-style: italic;")
+        notes_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.notes_layout.addWidget(notes_placeholder)
+        results_layout.addWidget(self.notes_group)
 
         results_layout.addStretch()
         main_layout.addWidget(results_panel, stretch=1)
@@ -326,6 +341,9 @@ class FuelCalculatorTab(QWidget):
 
         # Update stint breakdown
         self._update_stint_breakdown(strategy)
+
+        # Update advisor notes
+        self._update_notes(strategy)
 
     def _update_stint_breakdown(self, strategy):
         # Clear old stint info
@@ -436,3 +454,70 @@ class FuelCalculatorTab(QWidget):
 
         self.stint_layout.addWidget(table)
         self.stint_layout.addStretch()
+
+    def _update_notes(self, strategy):
+        """Generate and display strategy advisor notes based on calculated fuel strategy."""
+        # Clear old notes
+        while self.notes_layout.count():
+            item = self.notes_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        notes = []
+        fuel_per_lap = strategy.fuel_per_lap
+        tank = strategy.tank_capacity
+        total_fuel = strategy.total_fuel_needed
+        pit_stops = strategy.pit_stops_needed
+
+        # Engine map reminder
+        notes.append(("info", "Fuel per lap varies by engine map. Map 1 = aggressive/high use, Map 2-3 = conservative/lower use. Match your input to your race map."))
+
+        # Fuel load tradeoff
+        load_pct = (total_fuel / tank) * 100
+        if load_pct >= 90:
+            notes.append(("warn", f"You are loading {load_pct:.0f}% of tank capacity. Heavy fuel load will hurt lap times and increase tire wear early in each stint."))
+        elif load_pct <= 50:
+            notes.append(("good", f"Light fuel load ({load_pct:.0f}% of tank). Expect better lap times and lower tire wear — but consider fuel saving if the race is long."))
+        else:
+            notes.append(("info", f"Moderate fuel load ({load_pct:.0f}% of tank). Good balance between pace and race completion margin."))
+
+        # Pit stop strategy tip
+        if pit_stops == 0:
+            notes.append(("good", "No pit stop required. You can complete the race on one tank — but watch consumption if you push hard."))
+        elif pit_stops == 1:
+            notes.append(("info", "One pit stop strategy. Plan your stop around traffic and safety car windows for best time gain."))
+        else:
+            notes.append(("warn", f"{pit_stops} pit stops required. Each stop costs ~25-30 seconds. Consider if fuel saving could reduce stops."))
+
+        # Safety fuel note
+        notes.append(("info", f"Safety margin: {strategy.safety_fuel:.1f} L ({strategy.safety_fuel / fuel_per_lap:.1f} laps). Adjust if you plan aggressive fuel saving."))
+
+        # Render notes
+        for note_type, text in notes:
+            row = QFrame()
+            row.setStyleSheet("""
+                QFrame {
+                    background-color: #161A24;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 2px;
+                }
+            """)
+            row_layout = QHBoxLayout(row)
+            row_layout.setContentsMargins(10, 6, 10, 6)
+            row_layout.setSpacing(10)
+
+            dot_colors = {"info": "#8891A5", "warn": "#FF4A3D", "good": "#22C55E"}
+            dot = QLabel("●")
+            dot.setStyleSheet(f"color: {dot_colors[note_type]}; font-size: 10px; background: transparent;")
+            dot.setFixedWidth(12)
+
+            label = QLabel(text)
+            label.setStyleSheet("color: #B0B8C8; font-size: 12px; background: transparent;")
+            label.setWordWrap(True)
+
+            row_layout.addWidget(dot)
+            row_layout.addWidget(label, stretch=1)
+            self.notes_layout.addWidget(row)
+
+        self.notes_layout.addStretch()

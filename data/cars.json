@@ -1,7 +1,31 @@
 {
   "gt3": [
     {
-      "name": "Aston Martin V8 Vantage GT3",
+      "name": "Aston Martin V12 Vantage GT3 (2013)",
+      "class": "GT3",
+      "fuel_tank_liters": 132,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Aston Martin V8 Vantage GT3 (2019)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Audi R8 LMS (2015)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Audi R8 LMS Evo (2019)",
       "class": "GT3",
       "fuel_tank_liters": 120,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
@@ -12,6 +36,14 @@
       "name": "Audi R8 LMS GT3 Evo II",
       "class": "GT3",
       "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Bentley Continental GT3 (2015)",
+      "class": "GT3",
+      "fuel_tank_liters": 132,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
       "tire_split_psi": 0.2,
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
@@ -33,11 +65,19 @@
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
-      "name": "BMW M6 GT3",
+      "name": "BMW M6 GT3 (2017)",
       "class": "GT3",
       "fuel_tank_liters": 125,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
       "tire_split_psi": 0.3,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Emil Frey Jaguar G3 (2012)",
+      "class": "GT3",
+      "fuel_tank_liters": 119,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
@@ -49,6 +89,14 @@
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
+      "name": "Ferrari 488 GT3 (2018)",
+      "class": "GT3",
+      "fuel_tank_liters": 110,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
       "name": "Ferrari 488 GT3 Evo",
       "class": "GT3",
       "fuel_tank_liters": 110,
@@ -57,7 +105,7 @@
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
-      "name": "Honda NSX GT3 Evo",
+      "name": "Honda NSX GT3 (2017)",
       "class": "GT3",
       "fuel_tank_liters": 120,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
@@ -65,7 +113,15 @@
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
-      "name": "Lamborghini Huracán GT3 Evo 2",
+      "name": "Honda NSX GT3 Evo (2019)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Lamborghini Huracan GT3 (2015)",
       "class": "GT3",
       "fuel_tank_liters": 120,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
@@ -73,9 +129,65 @@
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
+      "name": "Lamborghini Huracan GT3 Evo (2019)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.3,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Lamborghini Huracan GT3 Evo 2",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.3,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Lamborghini Huracan ST (2015)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.3,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Lexus RC F GT3 (2016)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "McLaren 650S GT3 (2015)",
+      "class": "GT3",
+      "fuel_tank_liters": 125,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "McLaren 720S GT3 (2019)",
+      "class": "GT3",
+      "fuel_tank_liters": 125,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
       "name": "McLaren 720S GT3 Evo",
       "class": "GT3",
       "fuel_tank_liters": 125,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Mercedes-AMG GT3 (2015)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
       "tire_split_psi": 0.2,
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
@@ -89,9 +201,17 @@
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
     },
     {
+      "name": "Nissan GT-R Nismo GT3 (2015)",
+      "class": "GT3",
+      "fuel_tank_liters": 132,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
       "name": "Nissan GT-R Nismo GT3 (2018)",
       "class": "GT3",
-      "fuel_tank_liters": 130,
+      "fuel_tank_liters": 132,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
       "tire_split_psi": 0.2,
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
@@ -100,6 +220,38 @@
       "name": "Porsche 911 GT3 R (992)",
       "class": "GT3",
       "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Porsche 991 GT3 R (2018)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Porsche 991 GT3 R (2019)",
+      "class": "GT3",
+      "fuel_tank_liters": 120,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Porsche 991 II GT3 Cup (2017)",
+      "class": "GT3",
+      "fuel_tank_liters": 100,
+      "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
+      "tire_split_psi": 0.2,
+      "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
+    },
+    {
+      "name": "Reiter Engineering R-EX GT3 (2017)",
+      "class": "GT3",
+      "fuel_tank_liters": 130,
       "optimal_hot_psi": { "min": 26.6, "max": 27.0 },
       "tire_split_psi": 0.2,
       "wet_cold_pressures": { "FL": 27.0, "FR": 27.0, "RL": 27.0, "RR": 27.0 }
