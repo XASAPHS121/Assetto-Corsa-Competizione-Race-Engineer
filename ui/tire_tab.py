@@ -15,6 +15,7 @@ from core.car_data import CarDatabase
 from core.tire_advisor import (
     calculate_tire_recommendation, _estimate_pressure_gain,
 )
+from core.exporter import export_tire_recommendation
 from ui.fuel_tab import ResultCard
 
 
@@ -131,6 +132,13 @@ class TireAdvisorTab(QWidget):
         self.calc_button.setMinimumHeight(48)
         self.calc_button.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         input_layout.addWidget(self.calc_button)
+
+        # Export status (shown after a calculation)
+        self.export_status_label = QLabel("")
+        self.export_status_label.setWordWrap(True)
+        self.export_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.export_status_label.setStyleSheet("color: #5A6275; font-size: 11px; font-style: italic;")
+        input_layout.addWidget(self.export_status_label)
 
         input_layout.addStretch()
         main_layout.addWidget(input_panel)
@@ -389,6 +397,38 @@ class TireAdvisorTab(QWidget):
                         delta_label.setStyleSheet("color: #4A9FFF; font-size: 14px; font-weight: 600;")
 
         self._update_notes(recommendation.notes)
+
+        # Auto-export tire recommendation
+        try:
+            optimal_min, optimal_max = optimal_hot
+            json_path, _ = export_tire_recommendation(
+                car_name=car_name,
+                condition_label=recommendation.weather_label,
+                ambient_temp=ambient_temp,
+                track_temp=track_temp,
+                cold_pressures=dict(recommendation.cold_pressures),
+                pressure_gain=gain,
+                optimal_hot_min=optimal_min,
+                optimal_hot_max=optimal_max,
+                notes=recommendation.notes,
+            )
+            self._show_export_status(json_path)
+        except Exception as exc:
+            self._show_export_status(None, error=str(exc))
+
+    def _show_export_status(self, json_path, error: str = ""):
+        """Show a small status indicator near the calculate button."""
+        if not hasattr(self, "export_status_label"):
+            return
+        if error:
+            self.export_status_label.setText(f"Export failed: {error}")
+            self.export_status_label.setStyleSheet("color: #FF4A3D; font-size: 11px; font-style: italic;")
+        elif json_path:
+            import os
+            folder = os.path.basename(os.path.dirname(json_path))
+            filename = os.path.basename(json_path)
+            self.export_status_label.setText(f"Saved to {folder}/{filename}")
+            self.export_status_label.setStyleSheet("color: #22C55E; font-size: 11px; font-style: italic;")
 
     def _update_notes(self, notes: list[str]):
         while self.notes_layout.count():

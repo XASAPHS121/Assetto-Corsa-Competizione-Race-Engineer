@@ -27,3 +27,20 @@ def get_data_path(filename: str = "cars.json") -> str:
 def get_assets_path() -> str:
     """Return full path to the assets/ folder."""
     return os.path.join(get_base_dir(), "assets")
+
+
+def get_exports_dir(subfolder: str = "") -> str:
+    """Return path to the exports/ folder (or a subfolder). Created if missing.
+
+    When bundled as .exe, this lives next to the .exe so users can find it.
+    In dev mode, it lives in the project root.
+    """
+    if getattr(sys, "_MEIPASS", None):
+        base = os.path.dirname(sys.executable)
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    exports = os.path.join(base, "exports")
+    if subfolder:
+        exports = os.path.join(exports, subfolder)
+    os.makedirs(exports, exist_ok=True)
+    return exports

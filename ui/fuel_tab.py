@@ -13,6 +13,8 @@ from PyQt6.QtGui import QFont
 
 from core.car_data import CarDatabase
 from core.fuel_calculator import calculate_fuel_strategy, calculate_laps_from_duration
+from core.exporter import export_fuel_strategy
+from ui.toggle_switch import ToggleSwitch
 
 
 class ResultCard(QWidget):
@@ -130,7 +132,6 @@ class FuelCalculatorTab(QWidget):
         race_grid.addWidget(self.duration_spin, 2, 1)
 
         self.laptime_label = QLabel("Avg Lap Time")
-        self.laptime_label.setVisible(False)
         race_grid.addWidget(self.laptime_label, 3, 0)
 
         laptime_row = QWidget()
@@ -153,7 +154,6 @@ class FuelCalculatorTab(QWidget):
         laptime_h.addWidget(self.laptime_min_spin)
         laptime_h.addWidget(self.laptime_sec_spin)
 
-        laptime_row.setVisible(False)
         self.laptime_row = laptime_row
         race_grid.addWidget(laptime_row, 3, 1)
 
@@ -195,11 +195,42 @@ class FuelCalculatorTab(QWidget):
 
         input_layout.addWidget(fuel_group)
 
+        # Championship Rules Group
+        champ_group = QGroupBox("CHAMPIONSHIP RULES")
+        champ_grid = QGridLayout(champ_group)
+        champ_grid.setSpacing(10)
+
+        self.champ_enabled_check = ToggleSwitch("Enforce max stint duration")
+        champ_grid.addWidget(self.champ_enabled_check, 0, 0, 1, 2)
+
+        self.max_stint_label = QLabel("Max Stint Duration")
+        champ_grid.addWidget(self.max_stint_label, 1, 0)
+        self.max_stint_spin = QSpinBox()
+        self.max_stint_spin.setRange(5, 360)
+        self.max_stint_spin.setValue(60)
+        self.max_stint_spin.setSuffix(" min")
+        self.max_stint_spin.setEnabled(False)
+        champ_grid.addWidget(self.max_stint_spin, 1, 1)
+
+        champ_hint = QLabel("Stints split by fuel OR time, whichever is shorter. Useful for endurance championships.")
+        champ_hint.setStyleSheet("color: #5A6275; font-size: 12px; ")
+        champ_hint.setWordWrap(True)
+        champ_grid.addWidget(champ_hint, 2, 0, 1, 2)
+
+        input_layout.addWidget(champ_group)
+
         # Calculate Button
         self.calc_button = QPushButton("CALCULATE STRATEGY")
         self.calc_button.setMinimumHeight(48)
         self.calc_button.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         input_layout.addWidget(self.calc_button)
+
+        # Export status (shown after a calculation)
+        self.export_status_label = QLabel("")
+        self.export_status_label.setWordWrap(True)
+        self.export_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.export_status_label.setStyleSheet("color: #5A6275; font-size: 11px; font-style: italic;")
+        input_layout.addWidget(self.export_status_label)
 
         input_layout.addStretch()
         main_layout.addWidget(input_panel)
@@ -269,6 +300,7 @@ class FuelCalculatorTab(QWidget):
         self.class_combo.currentTextChanged.connect(self._on_class_changed)
         self.car_combo.currentTextChanged.connect(self._on_car_changed)
         self.race_mode_combo.currentTextChanged.connect(self._on_race_mode_changed)
+        self.champ_enabled_check.toggled.connect(self.max_stint_spin.setEnabled)
         self.calc_button.clicked.connect(self._calculate)
 
     def _populate_classes(self):
@@ -303,8 +335,7 @@ class FuelCalculatorTab(QWidget):
         self.race_laps_spin.setVisible(not is_timed)
         self.duration_label.setVisible(is_timed)
         self.duration_spin.setVisible(is_timed)
-        self.laptime_label.setVisible(is_timed)
-        self.laptime_row.setVisible(is_timed)
+        # Avg Lap Time is always visible — used for both race modes and championship rules
 
     def _calculate(self):
         car_name = self.car_combo.currentText()
@@ -314,8 +345,10 @@ class FuelCalculatorTab(QWidget):
         tank = self.car_db.get_fuel_tank(car_name)
         fuel_per_lap = self.fuel_per_lap_spin.value()
 
+        # Get lap time from the laptime spinboxes (in seconds)
+        lap_time_sec = self.laptime_min_spin.value() * 60 + self.laptime_sec_spin.value()
+
         if self.race_mode_combo.currentText() == "Timed Race":
-            lap_time_sec = self.laptime_min_spin.value() * 60 + self.laptime_sec_spin.value()
             race_laps = calculate_laps_from_duration(
                 self.duration_spin.value(),
                 lap_time_sec,
@@ -323,12 +356,22 @@ class FuelCalculatorTab(QWidget):
         else:
             race_laps = self.race_laps_spin.value()
 
+        # Championship rules: max stint duration
+        if self.champ_enabled_check.isChecked():
+            max_stint_min = float(self.max_stint_spin.value())
+            stint_lap_time = lap_time_sec if lap_time_sec > 0 else 120.0
+        else:
+            max_stint_min = 0.0
+            stint_lap_time = 0.0
+
         strategy = calculate_fuel_strategy(
             fuel_per_lap=fuel_per_lap,
             tank_capacity=tank,
             race_laps=race_laps,
             formation_laps=self.formation_laps_spin.value(),
             safety_margin_laps=self.safety_margin_spin.value(),
+            max_stint_minutes=max_stint_min,
+            avg_lap_time_seconds=stint_lap_time,
         )
 
         # Update result cards
@@ -344,6 +387,28 @@ class FuelCalculatorTab(QWidget):
 
         # Update advisor notes
         self._update_notes(strategy)
+
+        # Auto-export the strategy
+        try:
+            race_mode = self.race_mode_combo.currentText()
+            json_path, _ = export_fuel_strategy(car_name, strategy, race_mode)
+            self._show_export_status(json_path)
+        except Exception as exc:
+            self._show_export_status(None, error=str(exc))
+
+    def _show_export_status(self, json_path, error: str = ""):
+        """Show a small status indicator near the calculate button."""
+        if not hasattr(self, "export_status_label"):
+            return
+        if error:
+            self.export_status_label.setText(f"Export failed: {error}")
+            self.export_status_label.setStyleSheet("color: #FF4A3D; font-size: 11px; font-style: italic;")
+        elif json_path:
+            import os
+            folder = os.path.basename(os.path.dirname(json_path))
+            filename = os.path.basename(json_path)
+            self.export_status_label.setText(f"Saved to {folder}/{filename}")
+            self.export_status_label.setStyleSheet("color: #22C55E; font-size: 11px; font-style: italic;")
 
     def _update_stint_breakdown(self, strategy):
         # Clear old stint info
@@ -372,27 +437,26 @@ class FuelCalculatorTab(QWidget):
         table_layout.setSpacing(0)
 
         # Column headers
-        headers = ["STINT", "LAPS", "FUEL LOAD", "FUEL USED", "PIT STOPS"]
+        show_limited_by = bool(strategy.stint_limited_by) and strategy.max_stint_minutes > 0
+        if show_limited_by:
+            headers = ["STINT", "LAPS", "FUEL LOAD", "FUEL USED", "LIMITED BY", "PIT STOPS"]
+        else:
+            headers = ["STINT", "LAPS", "FUEL LOAD", "FUEL USED", "PIT STOPS"]
+
         header_style = "color: #0076C5; font-size: 14px; font-weight: 700; letter-spacing: 1px; padding: 8px 6px; background-color: #161A24;"
-        aligns = [
-            Qt.AlignmentFlag.AlignCenter,
-            Qt.AlignmentFlag.AlignCenter,
-            Qt.AlignmentFlag.AlignCenter,
-            Qt.AlignmentFlag.AlignCenter,
-            Qt.AlignmentFlag.AlignCenter,
-        ]
+        col_count = len(headers)
 
         for col, header_text in enumerate(headers):
             lbl = QLabel(header_text)
             lbl.setStyleSheet(header_style)
-            lbl.setAlignment(aligns[col] | Qt.AlignmentFlag.AlignVCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             table_layout.addWidget(lbl, 0, col)
 
         # Separator under header
         sep = QFrame()
         sep.setFixedHeight(20)
         sep.setStyleSheet("background-color: #12151C;")
-        table_layout.addWidget(sep, 1, 0, 1, 5)
+        table_layout.addWidget(sep, 1, 0, 1, col_count)
 
         # Data rows
         total_stints = len(strategy.stint_plan)
@@ -435,6 +499,29 @@ class FuelCalculatorTab(QWidget):
             used_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
             table_layout.addWidget(used_lbl, row, 3)
 
+            # Limited By column (only when championship rules active)
+            badge_col = 4
+            if show_limited_by:
+                limit = strategy.stint_limited_by[i] if i < len(strategy.stint_limited_by) else "fuel"
+                if limit == "time":
+                    limit_text = "TIME"
+                    limit_color = "#F59E0B"
+                elif limit == "fuel":
+                    limit_text = "FUEL"
+                    limit_color = "#0076C5"
+                else:
+                    limit_text = "—"
+                    limit_color = "#5A6275"
+
+                limit_lbl = QLabel(limit_text)
+                limit_lbl.setStyleSheet(
+                    f"color: {limit_color}; font-size: 13px; font-weight: 700; letter-spacing: 1px; "
+                    f"padding: 10px 16px; background-color: {bg};"
+                )
+                limit_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+                table_layout.addWidget(limit_lbl, row, 4)
+                badge_col = 5
+
             # Pit / Finish badge
             if is_last:
                 badge_text = "FINISH"
@@ -450,7 +537,7 @@ class FuelCalculatorTab(QWidget):
                 f"background-color: {bg};"
             )
             badge.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-            table_layout.addWidget(badge, row, 4)
+            table_layout.addWidget(badge, row, badge_col)
 
         self.stint_layout.addWidget(table)
         self.stint_layout.addStretch()

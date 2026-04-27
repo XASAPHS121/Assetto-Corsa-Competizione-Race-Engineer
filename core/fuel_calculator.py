@@ -22,6 +22,9 @@ class FuelStrategy:
     safety_fuel: float
     stint_plan: list[int] = field(default_factory=list)
     fuel_load_per_stint: list[float] = field(default_factory=list)
+    stint_limited_by: list[str] = field(default_factory=list)
+    max_stint_minutes: float = 0.0
+    avg_lap_time_seconds: float = 0.0
 
 
 def calculate_fuel_strategy(
@@ -31,6 +34,8 @@ def calculate_fuel_strategy(
     formation_laps: int = 1,
     formation_lap_multiplier: float = 0.5,
     safety_margin_laps: float = 1.0,
+    max_stint_minutes: float = 0.0,
+    avg_lap_time_seconds: float = 0.0,
 ) -> FuelStrategy:
     """
     Calculate optimal fuel strategy for a race.
@@ -42,6 +47,8 @@ def calculate_fuel_strategy(
         formation_laps: Number of formation/warm-up laps.
         formation_lap_multiplier: Fuel multiplier for formation laps (lower speed).
         safety_margin_laps: Extra laps of fuel to carry as safety margin.
+        max_stint_minutes: Optional max stint duration (0 = disabled).
+        avg_lap_time_seconds: Avg lap time, required when max_stint_minutes > 0.
 
     Returns:
         FuelStrategy with all computed values.
@@ -62,12 +69,14 @@ def calculate_fuel_strategy(
     laps_per_full_tank = int(tank_capacity / fuel_per_lap)
 
     # Build the stint plan
-    stint_plan, fuel_loads = _build_stint_plan(
+    stint_plan, fuel_loads, limited_by = _build_stint_plan(
         fuel_per_lap=fuel_per_lap,
         tank_capacity=tank_capacity,
         race_laps=race_laps,
         formation_fuel=formation_fuel,
         safety_fuel=safety_fuel,
+        max_stint_minutes=max_stint_minutes,
+        avg_lap_time_seconds=avg_lap_time_seconds,
     )
 
     pit_stops = len(stint_plan) - 1
@@ -95,6 +104,9 @@ def calculate_fuel_strategy(
         safety_fuel=round(safety_fuel, 2),
         stint_plan=stint_plan,
         fuel_load_per_stint=fuel_loads,
+        stint_limited_by=limited_by,
+        max_stint_minutes=max_stint_minutes,
+        avg_lap_time_seconds=avg_lap_time_seconds,
     )
 
 
@@ -104,42 +116,63 @@ def _build_stint_plan(
     race_laps: int,
     formation_fuel: float,
     safety_fuel: float,
-) -> tuple[list[int], list[float]]:
+    max_stint_minutes: float = 0.0,
+    avg_lap_time_seconds: float = 0.0,
+) -> tuple[list[int], list[float], list[str]]:
     """
-    Build a realistic stint plan respecting tank capacity.
+    Build a realistic stint plan respecting tank capacity and optional time limit.
 
     Returns:
-        (stint_plan, fuel_loads) — list of lap counts and fuel to load per stint.
+        (stint_plan, fuel_loads, limited_by) — laps, fuel, and what limited each stint.
     """
+    # Compute time-based stint limit if enabled
+    time_limit_active = max_stint_minutes > 0 and avg_lap_time_seconds > 0
+    if time_limit_active:
+        max_laps_by_time = int((max_stint_minutes * 60) / avg_lap_time_seconds)
+        max_laps_by_time = max(max_laps_by_time, 1)
+    else:
+        max_laps_by_time = race_laps  # effectively no time limit
+
     total_race_fuel = (race_laps * fuel_per_lap) + formation_fuel + safety_fuel
 
-    if total_race_fuel <= tank_capacity:
-        # No pit stop needed — single stint
+    # Single-stint check: only if fuel AND time both allow it
+    if total_race_fuel <= tank_capacity and race_laps <= max_laps_by_time:
         fuel_load = min(math.ceil(total_race_fuel), tank_capacity)
-        return [race_laps], [round(float(fuel_load), 2)]
+        return [race_laps], [round(float(fuel_load), 2)], ["finish"]
 
-    # First stint: formation fuel reduces available capacity for racing laps
+    # First stint capacity (formation fuel reduces available fuel)
     first_stint_available = tank_capacity - formation_fuel
-    first_stint_laps = int(first_stint_available / fuel_per_lap)
-    first_stint_laps = max(first_stint_laps, 1)
+    first_stint_fuel_laps = max(int(first_stint_available / fuel_per_lap), 1)
 
-    # Subsequent stints: full tank available for racing laps
-    max_laps_per_stint = int(tank_capacity / fuel_per_lap)
+    # Other stints capacity
+    other_stint_fuel_laps = max(int(tank_capacity / fuel_per_lap), 1)
 
-    # Build stint list
-    stint_plan = []
+    stint_plan: list[int] = []
+    limited_by: list[str] = []
     laps_remaining = race_laps
 
-    # First stint
-    stint_laps = min(first_stint_laps, laps_remaining)
-    stint_plan.append(stint_laps)
-    laps_remaining -= stint_laps
-
-    # Middle and final stints
     while laps_remaining > 0:
-        stint_laps = min(max_laps_per_stint, laps_remaining)
-        stint_plan.append(stint_laps)
-        laps_remaining -= stint_laps
+        is_first = len(stint_plan) == 0
+        fuel_cap = first_stint_fuel_laps if is_first else other_stint_fuel_laps
+        time_cap = max_laps_by_time
+
+        # Whichever is smaller wins
+        cap = min(fuel_cap, time_cap, laps_remaining)
+        stint_plan.append(cap)
+        laps_remaining -= cap
+
+        # Determine what limited this stint
+        if cap == laps_remaining + cap and laps_remaining == 0:
+            # This was the final stint (race ended naturally)
+            limited_by.append("finish")
+        elif time_limit_active and time_cap < fuel_cap:
+            limited_by.append("time")
+        else:
+            limited_by.append("fuel")
+
+    # Last stint always reads "finish" since the race ended there
+    if limited_by:
+        limited_by[-1] = "finish"
 
     # Calculate fuel loads per stint
     fuel_loads = []
@@ -147,13 +180,12 @@ def _build_stint_plan(
         fuel_needed = laps * fuel_per_lap
         if i == 0:
             fuel_needed += formation_fuel
-        # Add safety fuel proportionally to the last stint, or spread it
         if i == len(stint_plan) - 1:
             fuel_needed += safety_fuel
         fuel_load = min(math.ceil(fuel_needed), tank_capacity)
         fuel_loads.append(round(float(fuel_load), 2))
 
-    return stint_plan, fuel_loads
+    return stint_plan, fuel_loads, limited_by
 
 
 def calculate_laps_from_duration(

@@ -6,3 +6,4 @@ dist/
 .idea/
 *.spec
 output.py
+exports/

@@ -10,11 +10,14 @@ Provides fuel strategy calculations and tire pressure recommendations to help yo
 ### Fuel Calculator
 - Select any **GT3** or **GT4** car with accurate tank capacities
 - Choose between **Fixed Laps** or **Timed Race** modes
-- Lap time input in **minutes and seconds** for timed races
+- Lap time input in **minutes and seconds** — always visible, used for both modes
 - Calculates total fuel needed, laps per full tank, and pit stops required
 - Accounts for **formation lap** fuel consumption and **safety margin**
 - Generates a detailed **stint breakdown table** showing fuel load and usage per stint
 - PIT / FINISH badges for quick strategy overview
+- **Championship Rules** — enforce a max stint duration; stints split by fuel OR time, whichever comes first
+- **LIMITED BY** column in the stint table showing FUEL or TIME for each stint
+- Strategy notes panel with engine map hints and fuel load assessment
 
 ### Tire Advisor
 - Recommends **cold starting pressures** (set in pits) per tire corner (FL, FR, RL, RR)
@@ -25,16 +28,39 @@ Provides fuel strategy calculations and tire pressure recommendations to help yo
 - Per-corner **+/- adjustment buttons** with delta tracking from base recommendation
 - Advisor notes with tips based on current conditions
 
+### Auto Export
+After every calculation, the app automatically saves your results as both `.json` and `.txt` files so you can reference them later without reopening the app:
+
+```
+exports/
+├── Fuel Calculator/
+│   ├── Fuel_BMW M4 GT3_2026-04-27_14-32.json
+│   └── Fuel_BMW M4 GT3_2026-04-27_14-32.txt
+└── Tire Advisor/
+    ├── Tires_BMW M4 GT3_2026-04-27_14-33.json
+    └── Tires_BMW M4 GT3_2026-04-27_14-33.txt
+```
+
+The folder lives next to the `.exe` (or in the project root in dev mode).
+
 ---
 
 ## Supported Cars
 
-### GT3 (13 cars)
-Aston Martin V8 Vantage GT3, Audi R8 LMS GT3 Evo II, Bentley Continental GT3 (2018),
-BMW M4 GT3, BMW M6 GT3, Ferrari 296 GT3, Ferrari 488 GT3 Evo, Honda NSX GT3 Evo,
-Lamborghini Huracan GT3 Evo 2, McLaren 720S GT3 Evo, Mercedes-AMG GT3 (2020),
-Nissan GT-R Nismo GT3 (2018), Porsche 911 GT3 R (992)
-More coming soon...
+### GT3 (32 cars)
+Aston Martin V12 Vantage GT3 (2013), Aston Martin V8 Vantage GT3 (2019),
+Audi R8 LMS (2015), Audi R8 LMS Evo (2019), Audi R8 LMS GT3 Evo II,
+Bentley Continental GT3 (2015), Bentley Continental GT3 (2018),
+BMW M4 GT3, BMW M6 GT3 (2017), Emil Frey Jaguar G3 (2012),
+Ferrari 296 GT3, Ferrari 488 GT3 (2018), Ferrari 488 GT3 Evo,
+Honda NSX GT3 (2017), Honda NSX GT3 Evo (2019),
+Lamborghini Huracan GT3 (2015), Lamborghini Huracan GT3 Evo (2019), Lamborghini Huracan GT3 Evo 2,
+Lamborghini Huracan ST (2015), Lexus RC F GT3 (2016),
+McLaren 650S GT3 (2015), McLaren 720S GT3 (2019), McLaren 720S GT3 Evo,
+Mercedes-AMG GT3 (2015), Mercedes-AMG GT3 (2020),
+Nissan GT-R Nismo GT3 (2015), Nissan GT-R Nismo GT3 (2018),
+Porsche 911 GT3 R (992), Porsche 991 GT3 R (2018), Porsche 991 GT3 R (2019),
+Porsche 991 II GT3 Cup (2017), Reiter Engineering R-EX GT3 (2017)
 
 ### GT4 (6 cars)
 Alpine A110 GT4, Aston Martin V8 Vantage GT4, BMW M4 GT4,
@@ -101,7 +127,9 @@ acc-engineer/
 ├── core/                    # Backend logic
 │   ├── car_data.py          # Car database loader (reads cars.json)
 │   ├── fuel_calculator.py   # Fuel strategy calculation engine
-│   └── tire_advisor.py      # Tire pressure recommendation engine
+│   ├── tire_advisor.py      # Tire pressure recommendation engine
+│   ├── exporter.py          # Auto-saves calculation results to JSON/TXT
+│   └── paths.py             # Path resolution (works for dev + .exe)
 │
 ├── data/
 │   └── cars.json            # Car database (tank sizes, tire pressures)
@@ -110,6 +138,7 @@ acc-engineer/
 │   ├── main_window.py       # Main window with header and tab navigation
 │   ├── fuel_tab.py          # Fuel Calculator tab
 │   ├── tire_tab.py          # Tire Advisor tab
+│   ├── toggle_switch.py     # Custom red toggle switch widget
 │   └── theme.py             # Dark racing QSS theme (fully documented)
 │
 ├── assets/                  # Icons and images
@@ -128,12 +157,15 @@ acc-engineer/
 
 ### Fuel Calculator
 1. Select your car (auto-fills tank capacity)
-2. Set race mode (fixed laps or timed)
+2. Set race mode (fixed laps or timed) and your average lap time
 3. Enter average fuel per lap, formation laps, and safety margin
-4. Hit **Calculate Strategy** to get:
+4. *(Optional)* Toggle **Championship Rules** and set a max stint duration in minutes
+5. Hit **Calculate Strategy** to get:
    - Total fuel, laps per tank, pit stops needed
    - Fuel per stop, formation fuel, fuel remaining at finish
-   - Full stint breakdown with fuel loads
+   - Full stint breakdown with fuel loads and FUEL/TIME limit indicators
+   - Strategy notes with engine map hints
+6. Results are automatically saved to `exports/Fuel Calculator/`
 
 ### Tire Advisor
 1. Select your car
@@ -144,6 +176,14 @@ acc-engineer/
    - Estimated pressure gain and delta vs your current setup
    - Hot pressure status (in window / over / under)
 5. Use **+/-** buttons to fine-tune each corner by 0.1 PSI based on what you see in-game
+6. Results are automatically saved to `exports/Tire Advisor/`
+
+### Championship Rules (Endurance Racing)
+For endurance championships with **mandatory pit windows** or **max stint durations**:
+1. Toggle the red switch in the Championship Rules group
+2. Set your max stint time (e.g. 30 min)
+3. The stint planner now uses `min(fuel_laps, time_laps)` per stint
+4. The LIMITED BY column shows whether each pit was forced by **FUEL** running low (blue) or by the **TIME** rule (orange)
 
 ### Tire Pressure Physics
 Cold tires in the pits have lower pressure. After a few laps on track, heat builds up and pressure rises.
